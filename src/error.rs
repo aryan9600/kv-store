@@ -1,5 +1,6 @@
 use thiserror::Error;
 
+/// Custom Error type for KVStore.
 #[derive(Error, Debug)]
 pub enum KVStoreError {
     #[error("IO Error: `{0}`")]
@@ -9,7 +10,10 @@ pub enum KVStoreError {
     #[error("Key `{0}` does not exist.")]
     KeyNotFound(String),
     #[error("`{0}` is not a valid action.")]
-    InvalidAction(String)
+    InvalidAction(String),
+    #[error("Error while getting a lock.")]
+    Lock
 }
 
+/// Custom Result type for KVStore.
 pub type Result<T> = std::result::Result<T, KVStoreError>;
