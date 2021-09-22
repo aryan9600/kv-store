@@ -10,7 +10,11 @@ type Result<T, E = rocket::response::Debug<KVStoreError>> = std::result::Result<
 
 #[launch]
 fn rocket() -> _ {
-    let log_path = "kvs.log";
+    let mut log_path = String::from("kvs.log");
+    // Try to fetch KVSTORE_LOG_PATH from env to customize log file path.
+    if let Ok(val) = std::env::var("KVSTORE_LOG_PATH") {
+        log_path = val;
+    }
     let store = KVStore::open(log_path).unwrap();
     rocket::build()
         .mount("/", routes![index, set, get, rm])

@@ -1,4 +1,5 @@
 use rocket::serde::{Serialize, Deserialize};
+use std::fmt;
 
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
@@ -29,6 +30,16 @@ impl From<(bool, Option<String>)> for GetBody {
     }
 }
 
+impl fmt::Display for GetBody {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(val) = &self.val {
+            write!(f, "{{found: {}, val: {}}}", self.found, val)
+        } else {
+            write!(f, "{{found: {}, val: null}}", self.found)
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct SetBody {
@@ -41,6 +52,16 @@ impl From<(bool, Option<String>)> for SetBody {
         SetBody {
             inserted: body.0,
             ejected_val: body.1
+        }
+    }
+}
+
+impl fmt::Display for SetBody {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(val) = &self.ejected_val {
+            write!(f, "{{inserted: {}, ejected_val: {}}}", self.inserted, val)
+        } else {
+            write!(f, "{{inserted: {}, ejected_val: null}}", self.inserted)
         }
     }
 }
@@ -59,6 +80,16 @@ impl From<(bool, Option<String>)> for RmBody {
             removed: body.0,
             found: body.0,
             ejected_val: body.1
+        }
+    }
+}
+
+impl fmt::Display for RmBody {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(val) = &self.ejected_val {
+            write!(f, "{{removed: {}, found: {}, ejected_val: {}}}", self.removed, self.found, val)
+        } else {
+            write!(f, "{{removed: {}, found: {}, ejected_val: null}}", self.removed, self.found)
         }
     }
 }
