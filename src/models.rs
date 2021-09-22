@@ -8,10 +8,22 @@ pub struct SetItem {
     pub val: String
 }
 
+impl fmt::Display for SetItem {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{{key: {}, val: {}}}", self.key, self.val)
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct RmItem {
     pub key: String
+}
+
+impl fmt::Display for RmItem {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{{key: {}}}", self.key)
+    }
 }
 
 #[derive(Serialize, Deserialize)]

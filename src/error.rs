@@ -12,7 +12,7 @@ pub enum KVStoreError {
     #[error("`{0}` is not a valid action.")]
     InvalidAction(String),
     #[error("Error while getting a lock.")]
-    Lock
+    Lock,
 }
 
 /// Custom Result type for KVStore.
