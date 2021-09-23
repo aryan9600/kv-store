@@ -19,6 +19,7 @@ const LOG_FILE_PATH: &str = "kvs.log";
 impl ConnStrings {
     // Try to load the strings from environment. Use specified defaults if not found.
     pub fn load() -> Self {
+        dotenv::dotenv().ok();
         let mut server_host = String::from(SERVER_HOST);
         if let Ok(val) = std::env::var("KVSTORE_SERVER_HOST") {
             server_host = val;

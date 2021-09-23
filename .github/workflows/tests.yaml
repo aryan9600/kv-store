@@ -37,7 +37,7 @@ jobs:
         uses: actions-rs/tarpaulin@v0.1
         with:
           version: "0.18.0"
-          args: " --avoid-cfg-tarpaulin --exclude-files target* **/client.rs  **/error.rs --out Lcov --all"
+          args: " --avoid-cfg-tarpaulin --exclude-files target* **/client.rs **/server.rs  **/error.rs --out Lcov --all"
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
