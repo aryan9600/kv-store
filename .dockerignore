@@ -2,3 +2,5 @@
 Dockerfile
 /target
 *.log
+.env
+docker-compose.yml

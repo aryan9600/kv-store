@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+    web:
+        build: .
+        ports:
+         - "8000:${PORT:-8000}"
+        depends_on:
+         - nats
+        env_file: .env
+
+    nats:
+        image: nats:2.6.0-alpine
+        ports:
+         - "4222:4222"
+        env_file: .env
