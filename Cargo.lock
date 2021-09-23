@@ -790,6 +790,7 @@ dependencies = [
  "clap",
  "log",
  "nats",
+ "rand 0.8.4",
  "reqwest",
  "rocket",
  "serde",
