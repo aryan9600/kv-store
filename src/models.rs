@@ -1,6 +1,7 @@
 use rocket::serde::{Serialize, Deserialize};
 use std::fmt;
 
+// Represents the payload for a Set action.
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct SetItem {
@@ -14,6 +15,7 @@ impl fmt::Display for SetItem {
     }
 }
 
+// Represents the payload for a Rm action.
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct RmItem {
@@ -26,6 +28,7 @@ impl fmt::Display for RmItem {
     }
 }
 
+// Response body returned while trying to perform get.
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct GetBody {
@@ -52,6 +55,7 @@ impl fmt::Display for GetBody {
     }
 }
 
+// Response body returned while trying to perform set.
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct SetBody {
@@ -78,6 +82,7 @@ impl fmt::Display for SetBody {
     }
 }
 
+// Response body returned while trying to perform rm.
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct RmBody {

@@ -8,7 +8,8 @@ async fn main() -> Result<()> {
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
-        .after_help("Set the KVSTORE_HOST env variable to specify the server host, default: 127.0.0.1:8000")
+        .after_help("To speficy a custom server host, set the $KVSTORE_SERVER_HOST variable.")
+        .after_help("To speficy a custom server host, set the $KVSTORE_NATS_HOST variable.")
         .subcommand(
             SubCommand::with_name("set")
                 .about("Set the key value pair.")
@@ -31,6 +32,7 @@ async fn main() -> Result<()> {
         )
         .get_matches();
 
+    // prepare connection strings.
     let conn_strings = ConnStrings::load();
     let server_host = conn_strings.server_host();
     let client = reqwest::Client::new();
@@ -81,6 +83,8 @@ async fn main() -> Result<()> {
             let conn = pubsub::connect(conn_strings.nats_host());
             if let Some(nc) = conn {
                 let rm_sub = pubsub::subscribe(&nc, "rm")?;
+                // move this subscription to another thread, so that we don't block the main thread
+                // while iterating.
                 tokio::spawn(async move {
                     for msg in rm_sub.messages() {
                         let rm_item: Option<RmItem> = serde_json::from_slice(&msg.data).ok();
