@@ -1,40 +1,50 @@
-use std::{collections::BTreeMap, fs::{File, OpenOptions}, io::{self, BufReader, BufWriter, Read, Seek, SeekFrom, Write}, ops::Range, path::PathBuf, sync::Mutex};
-use crate::{KVStoreError, error::Result};
-use serde::{Serialize, Deserialize};
+use crate::{error::Result, KVStoreError};
+use serde::{Deserialize, Serialize};
 use serde_json::Deserializer;
+use std::{
+    collections::BTreeMap,
+    fs::{File, OpenOptions},
+    io::{self, BufReader, BufWriter, Read, Seek, SeekFrom, Write},
+    ops::Range,
+    path::PathBuf,
+    sync::Mutex,
+};
 
 // Ser/Derializable action to be stored in the log.
 #[derive(Serialize, Deserialize, Debug)]
 enum Action {
     Set { key: String, val: String },
-    Remove { key: String }
+    Remove { key: String },
 }
 
 // Pointer to a stored action in the log.
 #[derive(Debug)]
 struct ActionPointer {
     pos: u64,
-    len: u64
+    len: u64,
 }
 
 impl From<Range<u64>> for ActionPointer {
     fn from(range: Range<u64>) -> Self {
-        ActionPointer { pos: range.start, len: range.end - range.start } 
+        ActionPointer {
+            pos: range.start,
+            len: range.end - range.start,
+        }
     }
 }
 
 // A BufReader along with a pointer to the file.
 struct BufReaderWithPointer<R: Read + Seek> {
     reader: BufReader<R>,
-    pointer: u64
+    pointer: u64,
 }
 
 impl<R: Read + Seek> BufReaderWithPointer<R> {
     fn new(mut _inner: R) -> Result<Self> {
         let pointer = _inner.seek(SeekFrom::Current(0))?;
-        Ok(BufReaderWithPointer{
+        Ok(BufReaderWithPointer {
             reader: BufReader::new(_inner),
-            pointer
+            pointer,
         })
     }
 }
@@ -57,7 +67,7 @@ impl<R: Read + Seek> Seek for BufReaderWithPointer<R> {
 // A BufWriter along with a pointer to the file.
 struct BufWriterWithPointer<W: Write + Seek> {
     writer: BufWriter<W>,
-    pointer: u64
+    pointer: u64,
 }
 
 impl<W: Write + Seek> BufWriterWithPointer<W> {
@@ -108,7 +118,7 @@ impl<W: Write + Seek> Seek for BufWriterWithPointer<W> {
 pub struct KVStore {
     reader: Mutex<BufReaderWithPointer<File>>,
     writer: Mutex<BufWriterWithPointer<File>>,
-    index: Mutex<BTreeMap<String, ActionPointer>>
+    index: Mutex<BTreeMap<String, ActionPointer>>,
 }
 
 impl KVStore {
@@ -129,18 +139,20 @@ impl KVStore {
         let load_reader = reader.get_mut().map_err(|_| KVStoreError::Lock)?;
         load(load_reader, load_index)?;
 
-
-        Ok(KVStore{
+        Ok(KVStore {
             reader,
             index,
-            writer
+            writer,
         })
     }
 
     /// Stores the key and it's value. If the key already existed, the old value is returned.
-    pub fn set(&self, key: String, val: String) -> Result<Option<String>>{
+    pub fn set(&self, key: String, val: String) -> Result<Option<String>> {
         let action_key = key.clone();
-        let action = Action::Set{ key: action_key, val };
+        let action = Action::Set {
+            key: action_key,
+            val,
+        };
         let pointer = {
             let writer = &mut *self.writer.lock().map_err(|_| KVStoreError::Lock)?;
             let point = writer.pointer;
@@ -159,9 +171,9 @@ impl KVStore {
             reader.seek(SeekFrom::Start(old_action_pointer.pos))?;
             let mut buf = vec![0; old_action_pointer.len as usize];
             reader.read_exact(&mut buf)?;
-            if let Action::Set{ val, .. } = serde_json::from_slice(buf.as_slice())? {
-                return Ok(Some(val))
-            } 
+            if let Action::Set { val, .. } = serde_json::from_slice(buf.as_slice())? {
+                return Ok(Some(val));
+            }
         }
         Ok(None)
     }
@@ -174,10 +186,10 @@ impl KVStore {
             reader.seek(SeekFrom::Start(action_pointer.pos))?;
             let mut buf = vec![0; action_pointer.len as usize];
             reader.read_exact(&mut buf)?;
-            if let Action::Set{ val, .. } = serde_json::from_slice(buf.as_slice())? {
-                return Ok(Some(val))
-            } 
-            return Ok(None)
+            if let Action::Set { val, .. } = serde_json::from_slice(buf.as_slice())? {
+                return Ok(Some(val));
+            }
+            return Ok(None);
         }
         Err(KVStoreError::KeyNotFound(key))
     }
@@ -187,7 +199,7 @@ impl KVStore {
     pub fn rm(&self, key: String) -> Result<Option<String>> {
         let index = self.index.lock().map_err(|_| KVStoreError::Lock)?;
         if index.contains_key(&key) {
-            let action = Action::Remove{ key };
+            let action = Action::Remove { key };
             {
                 let writer = &mut *self.writer.lock().map_err(|_| KVStoreError::Lock)?;
                 serde_json::to_writer(writer, &action)?;
@@ -202,7 +214,7 @@ impl KVStore {
                 let val = self.get(key.clone());
                 let index = &mut *self.index.lock().map_err(|_| KVStoreError::Lock)?;
                 index.remove(&key);
-                return val
+                return val;
             }
             Ok(None)
         } else {
@@ -212,7 +224,10 @@ impl KVStore {
 }
 
 // Parse the log file and populate the index.
-fn load(reader: &mut BufReaderWithPointer<File>, index: &mut BTreeMap<String, ActionPointer>) -> Result<()> {
+fn load(
+    reader: &mut BufReaderWithPointer<File>,
+    index: &mut BTreeMap<String, ActionPointer>,
+) -> Result<()> {
     let mut pointer = reader.seek(SeekFrom::Start(0))?;
     let mut stream = Deserializer::from_reader(reader).into_iter::<Action>();
     while let Some(action) = stream.next() {

@@ -9,7 +9,7 @@ pub mod pubsub;
 pub struct ConnStrings {
     server_host: String,
     nats_host: String,
-    log_file_path: String
+    log_file_path: String,
 }
 
 const SERVER_HOST: &str = "http://127.0.0.1:8000";
@@ -34,7 +34,7 @@ impl ConnStrings {
         ConnStrings {
             server_host,
             nats_host,
-            log_file_path
+            log_file_path,
         }
     }
 
@@ -45,7 +45,7 @@ impl ConnStrings {
     pub fn nats_host(&self) -> String {
         self.nats_host.clone()
     }
-    
+
     pub fn log_file_path(&self) -> String {
         self.log_file_path.clone()
     }
