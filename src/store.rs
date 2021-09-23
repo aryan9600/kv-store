@@ -106,13 +106,18 @@ impl<W: Write + Seek> Seek for BufWriterWithPointer<W> {
 /// where the latest action corresponding to the key is stored in the file.
 ///
 /// ```rust
-/// let log_path = "kvs.log";
-/// let store = KVStore::open(log_path)?;
-/// if let Some(val) = store.set(key.to_string(), val.to_string())? {
-///     println!("{}", val);
-/// }
-/// if let Some(value) = store.get(key.to_string())? {
-///     println!("{}", val);
+/// use kv_store::store::KVStore;
+/// fn main() {
+///     let log_path = "/tmp/store.log";
+///     let store = KVStore::open(log_path).unwrap();
+///     let key = String::from("this is");
+///     let val = String::from("the way");
+///     if let Some(value) = store.set(key.clone(), val).unwrap() {
+///         println!("{}", value);
+///     }
+///     if let Some(value) = store.get(key).unwrap() {
+///         println!("{}", value);
+///     }
 /// }
 /// ```
 pub struct KVStore {
@@ -244,4 +249,65 @@ fn load(
         pointer = new_pointer;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+    use std::{panic, fs};
+
+    fn run_test<T>(test: T) -> ()
+    where T: FnOnce(KVStore) -> () + panic::UnwindSafe
+    {
+        let log_path = "/tmp/store_test.log";
+        let store = KVStore::open(log_path).unwrap();
+
+        let result = panic::catch_unwind(move || {
+            test(store)  
+        });
+
+        fs::remove_file(log_path).unwrap();
+
+        assert!(result.is_ok())
+    }
+
+    #[test]
+    fn test_set() {
+        run_test( |store: KVStore| {
+            let key = String::from("this is");
+            let val = String::from("the way");
+            let res = store.set(key.clone(), val).unwrap();
+            assert_eq!(res, None);
+            let val = String::from("not the way");
+            let res = store.set(key, val).unwrap();
+            assert_eq!(res, Some(String::from("the way")));
+
+        })
+    } 
+
+    #[test]
+    fn test_get() {
+        run_test( |store: KVStore| {
+            let key = String::from("this is");
+            let val = String::from("the way");
+            let res = store.set(key.clone(), val).unwrap();
+            assert_eq!(res, None);
+            let res = store.get(key).unwrap();
+            assert_eq!(res, Some(String::from("the way")));
+        })
+    } 
+
+    #[test]
+    fn test_rm() {
+        run_test( |store: KVStore| {
+            let key = String::from("this is");
+            let val = String::from("the way");
+            let res = store.set(key, val).unwrap();
+            assert_eq!(res, None);
+            let key = String::from("this is");
+            let res = store.rm(key.clone()).unwrap();
+            assert_eq!(res, Some(String::from("the way")));
+        })
+    }
 }
