@@ -67,9 +67,9 @@ fn set(
     }
     let response = status::Created::new("");
     if let Some(val) = val {
-        return Ok(response.body(Json(SetBody::from((true, Some(val))))));
+        Ok(response.body(Json(SetBody::from((true, Some(val))))))
     } else {
-        return Ok(response.body(Json(SetBody::from((true, None)))));
+        Ok(response.body(Json(SetBody::from((true, None)))))
     }
 }
 
@@ -80,11 +80,11 @@ fn get(
     key: String,
 ) -> Result<Json<GetBody>> {
     let store = state.inner();
-    let val = store.get(key.clone());
+    let val = store.get(key);
     if let Ok(Some(val)) = val {
-        return Ok(Json(GetBody::from((true, Some(val)))));
+        Ok(Json(GetBody::from((true, Some(val)))))
     } else {
-        return Ok(Json(GetBody::from((false, None))));
+        Ok(Json(GetBody::from((false, None))))
     }
 }
 
@@ -101,8 +101,8 @@ fn rm(
         pubsub::publish_action(nc, "rm", Box::new(item.into_inner()))?;
     }
     if let Ok(Some(val)) = val {
-        return Ok(Json(RmBody::from((true, Some(val)))));
+        Ok(Json(RmBody::from((true, Some(val)))))
     } else {
-        return Ok(Json(RmBody::from((false, None))));
+        Ok(Json(RmBody::from((false, None))))
     }
 }
