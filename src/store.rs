@@ -255,17 +255,20 @@ fn load(
 mod test {
 
     use super::*;
-    use std::{panic, fs};
+    use rand::Rng;
+    use std::{fs, panic};
 
     fn run_test<T>(test: T) -> ()
-    where T: FnOnce(KVStore) -> () + panic::UnwindSafe
+    where
+        T: FnOnce(KVStore) -> () + panic::UnwindSafe,
     {
-        let log_path = "/tmp/store_test.log";
-        let store = KVStore::open(log_path).unwrap();
+        // Since tests are run in parallel by default, we cannot have multiple unit tests working on the same file.
+        let mut rng = rand::thread_rng();
+        let n: u16 = rng.gen();
+        let log_path = format!("/tmp/{}.log", n);
+        let store = KVStore::open(log_path.clone()).unwrap();
 
-        let result = panic::catch_unwind(move || {
-            test(store)  
-        });
+        let result = panic::catch_unwind(move || test(store));
 
         fs::remove_file(log_path).unwrap();
 
@@ -274,7 +277,7 @@ mod test {
 
     #[test]
     fn test_set() {
-        run_test( |store: KVStore| {
+        run_test(|store: KVStore| {
             let key = String::from("this is");
             let val = String::from("the way");
             let res = store.set(key.clone(), val).unwrap();
@@ -282,13 +285,12 @@ mod test {
             let val = String::from("not the way");
             let res = store.set(key, val).unwrap();
             assert_eq!(res, Some(String::from("the way")));
-
         })
-    } 
+    }
 
     #[test]
     fn test_get() {
-        run_test( |store: KVStore| {
+        run_test(|store: KVStore| {
             let key = String::from("this is");
             let val = String::from("the way");
             let res = store.set(key.clone(), val).unwrap();
@@ -296,11 +298,11 @@ mod test {
             let res = store.get(key).unwrap();
             assert_eq!(res, Some(String::from("the way")));
         })
-    } 
+    }
 
     #[test]
     fn test_rm() {
-        run_test( |store: KVStore| {
+        run_test(|store: KVStore| {
             let key = String::from("this is");
             let val = String::from("the way");
             let res = store.set(key, val).unwrap();
