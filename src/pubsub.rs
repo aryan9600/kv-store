@@ -10,7 +10,6 @@ pub fn publish_action<'de, T>(conn: &Connection, subject: &str, action: Box<T>) 
     conn.publish(
         subject, serde_json::to_vec(&action)?
     )?;
-    println!("dadsd");
     Ok(())
 }
 

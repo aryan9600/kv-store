@@ -12,18 +12,22 @@ pub struct ConnStrings {
     log_file_path: String
 }
 
+const SERVER_HOST: &str = "http://127.0.0.1:8000";
+const NATS_HOST: &str = "127.0.0.1:4444";
+const LOG_FILE_PATH: &str = "kvs.log";
+
 impl ConnStrings {
     pub fn load() -> Self {
-        let mut server_host = String::from("127.0.0.1:8000");
-        if let Ok(val) = std::env::var("KVSTORE_HOST") {
+        let mut server_host = String::from(SERVER_HOST);
+        if let Ok(val) = std::env::var("KVSTORE_SERVER_HOST") {
             server_host = val;
         }
-        let mut nats_host = String::from("127.0.0.1:4444");
+        let mut nats_host = String::from(NATS_HOST);
         if let Ok(val) = std::env::var("KVSTORE_NATS_HOST") {
             nats_host = val;
         }
-        let mut log_file_path = String::from("kvs.log");
-        if let Ok(val) = std::env::var("KVSTORE_LOG_PATH") {
+        let mut log_file_path = String::from(LOG_FILE_PATH);
+        if let Ok(val) = std::env::var("KVSTORE_LOG_FILE_PATH") {
             log_file_path = val;
         }
         ConnStrings {

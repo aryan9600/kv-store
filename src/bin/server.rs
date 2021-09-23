@@ -1,8 +1,8 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, net::{Ipv4Addr, IpAddr}, str::FromStr};
 
-use kv_store::{KVStore, KVStoreError, models::{GetBody, RmBody, RmItem, SetItem, SetBody}, pubsub};
+use kv_store::{ConnStrings, KVStore, KVStoreError, models::{GetBody, RmBody, RmItem, SetItem, SetBody}, pubsub};
 use nats::Connection;
-use rocket::State;
+use rocket::{Config, State, http::hyper::Uri};
 use rocket::serde::json::Json;
 
 #[macro_use] extern crate rocket;
@@ -11,20 +11,24 @@ type Result<T, E = rocket::response::Debug<KVStoreError>> = std::result::Result<
 
 #[launch]
 fn rocket() -> _ {
-    let mut log_path = String::from("kvs.log");
-    // Try to fetch KVSTORE_LOG_PATH from env to customize log file path.
-    if let Ok(val) = std::env::var("KVSTORE_LOG_PATH") {
-        log_path = val;
-    }
-    let mut nats_host = String::from("127.0.0.1:4444");
-    if let Ok(val) = std::env::var("KVSTORE_NATS_HOST") {
-        nats_host = val;
-    }
-    let nc = pubsub::connect(nats_host);
-    let store = KVStore::open(log_path).expect("Could not open KVStore");
+    let conn_strings = ConnStrings::load();
+    let nc = pubsub::connect(conn_strings.nats_host());
+    let store = KVStore::open(conn_strings.log_file_path()).expect("Could not open KVStore");
+
+    let server_host = conn_strings.server_host().parse::<Uri>().expect("Invalid server url, please validate the value of KVSTORE_HOST, if it's set");
+    let host = server_host.host().unwrap();
+    let port = server_host.port_u16().unwrap();
+
+    let config = Config {
+        address: IpAddr::V4(Ipv4Addr::from_str(host).unwrap()),
+        port,
+        ..Config::default()
+    };
+
 
     rocket::build()
         .mount("/", routes![index, set, get, rm])
+        .configure(&config)
         .manage(store)
         .manage(nc)
 }
