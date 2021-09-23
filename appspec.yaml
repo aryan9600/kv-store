@@ -1,0 +1,10 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /opt/kv-store
+hooks:
+  ApplicationStart:
+    - location: scripts/deploy.sh
+      timeout: 300
+runas: root
