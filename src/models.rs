@@ -1,4 +1,4 @@
-use rocket::serde::{Serialize, Deserialize};
+use rocket::serde::{Deserialize, Serialize};
 use std::fmt;
 
 // Represents the payload for a Set action.
@@ -6,7 +6,7 @@ use std::fmt;
 #[serde(crate = "rocket::serde")]
 pub struct SetItem {
     pub key: String,
-    pub val: String
+    pub val: String,
 }
 
 impl fmt::Display for SetItem {
@@ -19,7 +19,7 @@ impl fmt::Display for SetItem {
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct RmItem {
-    pub key: String
+    pub key: String,
 }
 
 impl fmt::Display for RmItem {
@@ -33,14 +33,14 @@ impl fmt::Display for RmItem {
 #[serde(crate = "rocket::serde")]
 pub struct GetBody {
     found: bool,
-    val: Option<String>
+    val: Option<String>,
 }
 
 impl From<(bool, Option<String>)> for GetBody {
     fn from(body: (bool, Option<String>)) -> Self {
         GetBody {
             found: body.0,
-            val: body.1
+            val: body.1,
         }
     }
 }
@@ -60,14 +60,14 @@ impl fmt::Display for GetBody {
 #[serde(crate = "rocket::serde")]
 pub struct SetBody {
     inserted: bool,
-    ejected_val: Option<String>
+    ejected_val: Option<String>,
 }
 
 impl From<(bool, Option<String>)> for SetBody {
     fn from(body: (bool, Option<String>)) -> Self {
         SetBody {
             inserted: body.0,
-            ejected_val: body.1
+            ejected_val: body.1,
         }
     }
 }
@@ -88,7 +88,7 @@ impl fmt::Display for SetBody {
 pub struct RmBody {
     removed: bool,
     found: bool,
-    ejected_val: Option<String>
+    ejected_val: Option<String>,
 }
 
 impl From<(bool, Option<String>)> for RmBody {
@@ -96,7 +96,7 @@ impl From<(bool, Option<String>)> for RmBody {
         RmBody {
             removed: body.0,
             found: body.0,
-            ejected_val: body.1
+            ejected_val: body.1,
         }
     }
 }
@@ -104,9 +104,17 @@ impl From<(bool, Option<String>)> for RmBody {
 impl fmt::Display for RmBody {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(val) = &self.ejected_val {
-            write!(f, "{{removed: {}, found: {}, ejected_val: {}}}", self.removed, self.found, val)
+            write!(
+                f,
+                "{{removed: {}, found: {}, ejected_val: {}}}",
+                self.removed, self.found, val
+            )
         } else {
-            write!(f, "{{removed: {}, found: {}, ejected_val: null}}", self.removed, self.found)
+            write!(
+                f,
+                "{{removed: {}, found: {}, ejected_val: null}}",
+                self.removed, self.found
+            )
         }
     }
 }

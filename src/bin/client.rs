@@ -1,6 +1,9 @@
-use clap::{App, Arg, SubCommand};
-use kv_store::{ConnStrings, models::{GetBody, RmBody, RmItem, SetBody, SetItem}, pubsub};
 use anyhow::Result;
+use clap::{App, Arg, SubCommand};
+use kv_store::{
+    models::{GetBody, RmBody, RmItem, SetBody, SetItem},
+    pubsub, ConnStrings,
+};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -19,17 +22,14 @@ async fn main() -> Result<()> {
         .subcommand(
             SubCommand::with_name("get")
                 .about("Get the value of this key.")
-                .arg(Arg::with_name("key").required(true))
+                .arg(Arg::with_name("key").required(true)),
         )
         .subcommand(
             SubCommand::with_name("rm")
                 .about("Remove the key from the store.")
-                .arg(Arg::with_name("key").required(true))
+                .arg(Arg::with_name("key").required(true)),
         )
-        .subcommand(
-            SubCommand::with_name("sub")
-                .about("Subscribe to changes to any of the keys.")
-        )
+        .subcommand(SubCommand::with_name("sub").about("Subscribe to changes to any of the keys."))
         .get_matches();
 
     // prepare connection strings.
@@ -39,14 +39,18 @@ async fn main() -> Result<()> {
 
     match matches.subcommand() {
         ("set", Some(matches)) => {
-            let key = matches.value_of("key").expect("Key not provided").to_string();
-            let val = matches.value_of("val").expect("Value not provided").to_string();
-            let body = SetItem {
-                key,
-                val
-            };
+            let key = matches
+                .value_of("key")
+                .expect("Key not provided")
+                .to_string();
+            let val = matches
+                .value_of("val")
+                .expect("Value not provided")
+                .to_string();
+            let body = SetItem { key, val };
 
-            let resp: SetBody = client.post(format!("{}/set", server_host))
+            let resp: SetBody = client
+                .post(format!("{}/set", server_host))
                 .json(&body)
                 .send()
                 .await?
@@ -58,7 +62,8 @@ async fn main() -> Result<()> {
         ("get", Some(matches)) => {
             let key = matches.value_of("key").expect("Key not provided");
 
-            let resp: GetBody = client.get(format!("{}/get?key={}", server_host, key))
+            let resp: GetBody = client
+                .get(format!("{}/get?key={}", server_host, key))
                 .send()
                 .await?
                 .json()
@@ -66,12 +71,14 @@ async fn main() -> Result<()> {
             println!("{}", resp);
         }
         ("rm", Some(matches)) => {
-            let key = matches.value_of("key").expect("Key not provided").to_string();
-            let body = RmItem {
-                key
-            };
+            let key = matches
+                .value_of("key")
+                .expect("Key not provided")
+                .to_string();
+            let body = RmItem { key };
 
-            let resp: RmBody = client.delete(format!("{}/rm", server_host))
+            let resp: RmBody = client
+                .delete(format!("{}/rm", server_host))
                 .json(&body)
                 .send()
                 .await?

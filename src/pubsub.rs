@@ -1,16 +1,15 @@
-use nats::{Connection, Subscription};
-use rocket::serde::{Serialize, Deserialize};
 use log::error;
+use nats::{Connection, Subscription};
+use rocket::serde::{Deserialize, Serialize};
 
 use crate::Result;
 
 /// Publish an action to a subject in the NATS server.
 pub fn publish_action<'de, T>(conn: &Connection, subject: &str, action: Box<T>) -> Result<()>
-    where T: Serialize + Deserialize<'de> 
+where
+    T: Serialize + Deserialize<'de>,
 {
-    conn.publish(
-        subject, serde_json::to_vec(&action)?
-    )?;
+    conn.publish(subject, serde_json::to_vec(&action)?)?;
     Ok(())
 }
 
@@ -24,7 +23,7 @@ pub fn subscribe(conn: &Connection, subject: &str) -> Result<Subscription> {
 pub fn connect(host: String) -> Option<Connection> {
     match nats::connect(&host) {
         Ok(conn) => Some(conn),
-        Err(err) => { 
+        Err(err) => {
             error!("Could not connect to nats server: {}", &err);
             None
         }
