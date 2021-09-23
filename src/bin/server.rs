@@ -2,7 +2,7 @@ use std::{collections::HashMap, net::{Ipv4Addr, IpAddr}, str::FromStr};
 
 use kv_store::{ConnStrings, KVStore, KVStoreError, models::{GetBody, RmBody, RmItem, SetItem, SetBody}, pubsub};
 use nats::Connection;
-use rocket::{Config, State, http::hyper::Uri};
+use rocket::{Config, State, http::hyper::Uri, response::status};
 use rocket::serde::json::Json;
 
 #[macro_use] extern crate rocket;
@@ -41,21 +41,22 @@ fn index(_store_state: &State<KVStore>, _conn_state: &State<Option<Connection>>)
 }
 
 #[post("/set", format = "json", data = "<item>")]
-fn set(store_state: &State<KVStore>, conn_state: &State<Option<Connection>>, item: Json<SetItem>) -> Result<Json<SetBody>> {
+fn set(store_state: &State<KVStore>, conn_state: &State<Option<Connection>>, item: Json<SetItem>) -> Result<status::Created<Json<SetBody>>> {
     let store = store_state.inner();
     let val = store.set(item.key.clone(), item.val.clone())?;
     let conn = conn_state.inner();
     if let Some(nc) = conn {
         pubsub::publish_action(nc, "set", Box::new(item.into_inner()))?;
     }
+    let response = status::Created::new("");
     if let Some(val) = val {
-        return Ok(Json(
+        return Ok(response.body(Json(
             SetBody::from((true, Some(val)))
-        ))
+        )))
     } else  {
-        return Ok(Json(
+        return Ok(response.body(Json(
             SetBody::from((true, None))
-        ))
+        )))
     }
 }
 
