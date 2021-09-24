@@ -50,9 +50,13 @@ KVSTORE_SERVER_HOST=0.0.0.0:8000
 
 
 ## CI/CD
-GitHub Actions is used for CI. `cargo fmt` and `cargo clippy` is used to ensure linting and code quality. Tests are run and code coverage is reported using [tarpaulin](https://github.com/xd009642/tarpaulin) and [coveralls](https://coveralls.io). The production server is deployed on an EC2 instance(http://13.233.94.11) using `docker-compose`, which runs three services:
-* the kv-store server
-* a NATS server 
-* a HAProxy load balancer.
 
-A Jenkins server is also hosted on the same instance, which is used for deploying new changes. A push to the `main` branch will trigger a Jenkins job, which checks out the latest code, zips it and pushes it to a S3 bucket. AWS CodeDeploy deployment is then triggered which runs `deploy.sh`, a shell script which performs rolling deployments.
+* CI: Workflows run on GitHub Actions. `cargo fmt` and `cargo clippy` is used to ensure linting and code quality. All tests are run and code coverage is reported using [tarpaulin](https://github.com/xd009642/tarpaulin) and [coveralls](https://coveralls.io).
+
+* CD: The production server is deployed on an EC2 instance(http://13.233.94.11) using `docker-compose`, which runs three services:
+
+    * the kv-store server
+    * a NATS server
+    * a HAProxy load balancer
+
+    A Jenkins server is also hosted on the same instance, which is used for deploying new changes. A push to the `main` branch will trigger a Jenkins job, which checks out the latest code, zips it and pushes it to a S3 bucket. An AWS CodeDeploy deployment is then triggered which runs `deploy.sh`, a shell script which performs rolling deployments.
