@@ -6,6 +6,8 @@ services:
         depends_on:
          - nats
         env_file: .env
+        volumes:
+          - .:/home/rust/src/kv-store
         ports:
          - 80
 
