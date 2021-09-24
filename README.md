@@ -1,9 +1,12 @@
 # kv-store
----
+
 A key-value store exposed via a web server. A CLI client is also provided which consumes the web service.
 
+## Architecture
+<img src="https://raw.githubusercontent.com/aryan9600/kv-store/main/kv-store-arch.png" alt="KV Store Architecture"/>
+
 ## Usage
----
+
 #### Installing
 * Clone this repository.
 * Install [Rust](https://www.rust-lang.org/).
@@ -31,20 +34,25 @@ To subscribe to changes happening to keys, we also need to run a NATS server, wh
 KVSTORE_NATS_HOST=nats:4222
 KVSTORE_SERVER_HOST=0.0.0.0:8000
 ```
-* Run the services: `docker-compose up --build`
+* Run the services: `docker-compose -f docker-comppose.dev.yml up --build`
 
 #### Tests
 * To run tests: `cargo test`
 
 
-### Repo Structure
+## Repo Structure
 * `src/store.rs`: Contains the main buisness logic behing the get, set and rm operations.
 * `src/error.rs`: Defines the custom error/result types.
 * `src/models.rs`: Contains the various server request/response structures.
 * `src/pubsub.rs`: Contains helper methods related to publishing and subscribing to NATS.
 * `src/bin/client.rs`: Defines the CLI which consumes the web service and/or subscribes to changes to keys.
-* `src/bin/server.rs`: Launches the server and publishes and changes happening to any keys.
+* `src/bin/server.rs`: Launches the server and publishes any changes happening to any keys.
 
 
-### CI/CD
-GitHub Actions is used for CI/CD. `cargo fmt` and `cargo clippy` is used to ensure linting and code quality. Tests are run and ode coverage is reported using [`tarpaulin`](https://github.com/xd009642/tarpaulin) and [coveralls](https://coveralls.io).
+## CI/CD
+GitHub Actions is used for CI. `cargo fmt` and `cargo clippy` is used to ensure linting and code quality. Tests are run and code coverage is reported using [tarpaulin](https://github.com/xd009642/tarpaulin) and [coveralls](https://coveralls.io). The production server is deployed on an EC2 instance(http://13.233.94.11) using `docker-compose`, which runs three services:
+* the kv-store server
+* a NATS server 
+* a HAProxy load balancer.
+
+A Jenkins server is also hosted on the same instance, which is used for deploying new changes. A push to the `main` branch will trigger a Jenkins job, which checks out the latest code, zips it and pushes it to a S3 bucket. AWS CodeDeploy deployment is then triggered which runs `deploy.sh`, a shell script which performs rolling deployments.
