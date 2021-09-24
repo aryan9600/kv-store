@@ -7,7 +7,7 @@ services:
          - nats
         env_file: .env
         volumes:
-          - .:/home/rust/src/kv-store
+          - ${PWD}/kvs.log:/kvs.log
         ports:
          - 80
 
