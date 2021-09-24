@@ -4,3 +4,5 @@ Dockerfile
 *.log
 .env
 docker-compose.yml
+rust-toolchain
+docker-compose.dev.yml
