@@ -136,13 +136,15 @@ impl KVStore {
             .write(true)
             .append(true)
             .open(&path)?;
-        let writer = Mutex::new(BufWriterWithPointer::new(log_file)?);
 
         let mut index = Mutex::new(BTreeMap::new());
         let mut reader = Mutex::new(BufReaderWithPointer::new(File::open(&path)?)?);
+        let mut writer = Mutex::new(BufWriterWithPointer::new(log_file)?);
+
         let load_index = index.get_mut().map_err(|_| KVStoreError::Lock)?;
         let load_reader = reader.get_mut().map_err(|_| KVStoreError::Lock)?;
-        load(load_reader, load_index)?;
+        let load_writer = writer.get_mut().map_err(|_| KVStoreError::Lock)?;
+        load(load_reader, load_index, load_writer)?;
 
         Ok(KVStore {
             reader,
@@ -232,6 +234,7 @@ impl KVStore {
 fn load(
     reader: &mut BufReaderWithPointer<File>,
     index: &mut BTreeMap<String, ActionPointer>,
+    writer: &mut BufWriterWithPointer<File>
 ) -> Result<()> {
     let mut pointer = reader.seek(SeekFrom::Start(0))?;
     let mut stream = Deserializer::from_reader(reader).into_iter::<Action>();
@@ -248,6 +251,7 @@ fn load(
         }
         pointer = new_pointer;
     }
+    writer.seek(SeekFrom::Start(pointer))?;
     Ok(())
 }
 
