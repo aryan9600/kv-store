@@ -1,4 +1,5 @@
  #!/usr/bin/env bash
+cd /opt/kv-store
 container_id=""
 for id in `docker ps --format "table {{.ID}}  {{.Names}}  {{.CreatedAt}}" | grep web | awk -F  "  " '{print $1}'`
 do
