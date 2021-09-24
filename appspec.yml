@@ -3,7 +3,7 @@ os: linux
 files:
   - source: /
     destination: /opt/kv-store
-    file_exists_behavior: OVERWRITE
+file_exists_behavior: OVERWRITE
 hooks:
   ApplicationStart:
     - location: scripts/deploy.sh
